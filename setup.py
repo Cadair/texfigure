@@ -79,7 +79,7 @@ package_info = get_package_info()
 #package_info['package_data'][PACKAGENAME].append('data/*')
 
 # Define entry points for command-line scripts
-#entry_points = {}
+entry_points = {}
 #entry_points['console_scripts'] = [
 #    'astropy-package-template-example = packagename.example_mod:main',
 #]
