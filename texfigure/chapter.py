@@ -14,6 +14,81 @@ import matplotlib.pyplot as plt
 
 from plotting_helpers import fig_str, sub_fig_str, get_pgf_include
 
+class Figure(object):
+    """
+    A class for holding a matplotlib figure, that knows how to represent itself
+    as a latex environment.
+
+    Parameters
+    ----------
+
+    file_name : string
+        The full path of the figure file.
+
+    reference : string
+        A reference label for this figure, used as default values for caption
+        and label.
+
+    Attributes
+    ----------
+    fname : string
+        The base name of the full file path
+
+    base_dir : string
+        The directory containing the figure file
+
+    caption : string
+        The caption to use when representing the figure. (Default ``Figure reference``)
+
+    label : string
+        The latex label assigned to the figure envrionment. (Default ``fig:reference``)
+
+    placement : string
+        The figure envrionment placement value. (Default ``H``)
+
+    fig_str : string
+        The latex figure layout template.
+    """
+
+    fig_str = r"""
+\begin{{figure}}
+    \centering
+    {myfig}
+    \caption{{ {caption} }}
+    \label{{ {label} }}
+\end{{figure}}
+"""
+
+    def __init__(self, file_name, reference=None):
+        file_name = os.path.abspath(file_name)
+        if not reference:
+            self.reference = os.path.splitext(os.path.basename(file_name))
+
+        self.file_name = file_name
+        self.fname = os.path.basename(file_name)
+        self.base_dir = os.path.dirname(file_name)
+
+        self.caption = "Figure {}".format(self.reference)
+        self.label = "fig:{}".format(self.reference)
+        self.placement = 'H'
+
+    def get_pgf_include(self):
+        return r"\IfFileExists{{ {file_name} }}{{ \import{{ {base_dir} }}{{ {fname} }} }} {{}}".format(
+                                                      fname=self.fname,
+                                                      base_dir=self.base_dir,
+                                                      file_name=self.file_name)
+
+    def _repr_latex_(self):
+
+        default_kwargs = {'placement':self.placement,
+                          'caption':self.caption,
+                          'label': self.label}
+
+        myfig = self.get_pgf_include()
+
+        return self.fig_str.format(myfig=myfig, **default_kwargs)
+
+
 class Chapter(object):
     """
     A class holding information about different things in this chapter.
@@ -88,7 +163,7 @@ class Chapter(object):
 
         return fname
 
-    def add_figure(self, ref, fname):
+    def add_figure(self, ref, Fig):
         """
         Add the figure to the tracked files and increment the figure count.
 
@@ -100,9 +175,9 @@ class Chapter(object):
             Overwrite the default file name template with this name.
         """
 
-        self.pytex.add_created(fname)
+        self.pytex.add_created(Fig.file_name)
 
-        self._figure_registry[ref] = {'number': self.fig_count, 'fname': fname}
+        self._figure_registry[ref] = {'number': self.fig_count, 'Figure': Fig}
         self.fig_count += 1
 
     def save_figure(self, ref, fig=None, fname=None, fext='.pgf'):
@@ -117,11 +192,13 @@ class Chapter(object):
 
         fig.savefig(fname)
 
-        self.add_figure(ref, fname)
+        Fig = Figure(os.path.abspath(fname))
 
-        return fname
+        self.add_figure(ref, Fig)
 
-    def get_figure_filename(self, ref):
+        return Fig
+
+    def get_figure(self, ref):
         """
         Get the filename of a figure that has already been saved
 
@@ -136,22 +213,19 @@ class Chapter(object):
             The filename
         """
 
-        return self._figure_registry[ref]['fname']
+        return self._figure_registry[ref]['Figure']
 
     def build_figure(self, ref, **kwargs):
         """
         Print a whole figure environment
         """
 
-        fname = self.get_figure_filename(ref)
+        Fig = self.get_figure(ref)
 
-        default_kwargs = {'placement':'H', 'caption':'Figure {}'.format(ref),
-                          'label':'fig:{}'.format(ref), }
-        default_kwargs.update(kwargs)
+        for k,v in kwargs.items():
+            setattr(Fig, k, v)
 
-        myfig = get_pgf_include(fname, os.path.abspath(self.fig_dir))
-
-        return fig_str.format(myfig=myfig, **default_kwargs)
+        return Fig
 
     def build_subfigure(self, ref, **kwargs):
         """

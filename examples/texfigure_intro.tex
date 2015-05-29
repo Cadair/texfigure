@@ -168,12 +168,11 @@ fig = plt.figure()
 im = aiamap.plot()
 aiamap.draw_grid()
 
-ch2.save_figure('sunpy1', fig)
+lfig = ch2.save_figure('sunpy1', fig)
+lfig.caption = r"EUV image of the million degree solar corona, taken with the Atmospheric Imaging Assembly on the NASA Solar Dynamics Observatory."
 \end{pycode}
 
-\py[chapter2]|ch2.build_figure('sunpy1',
-width=r"0.9\columnwidth",
-caption=r"EUV image of the million degree solar corona, taken with the Atmospheric Imaging Assembly on the NASA Solar Dynamics Observatory.")|
+\py[chapter2]|ch2.get_figure('sunpy1')|
 
 You can now reference the figure above, \ref{fig:sunpy1}.
 
