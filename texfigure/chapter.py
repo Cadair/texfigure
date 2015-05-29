@@ -64,7 +64,7 @@ class Chapter(object):
         self.pytex.add_dependencies(fname)
         return fname
 
-    def make_figure_filename(self, ref, fname=None):
+    def make_figure_filename(self, ref, fname=None, fext=''):
         """
         Return the standard template figure name with number.
 
@@ -81,10 +81,10 @@ class Chapter(object):
             The file name
         """
         if not fname:
-            fname = 'Chapter{}_Figure{}_{}'.format(self.number, self.fig_count,
-                                                   ref)
+            fname = 'Chapter{}_Figure{}_{}{}'.format(self.number, self.fig_count,
+                                                     ref, fext)
 
-        fname = os.path.join(self.fig_dir, fname)
+        fname = fname
 
         return fname
 
@@ -105,7 +105,7 @@ class Chapter(object):
         self._figure_registry[ref] = {'number': self.fig_count, 'fname': fname}
         self.fig_count += 1
 
-    def save_figure(self, ref, fig=None, fname=None):
+    def save_figure(self, ref, fig=None, fname=None, fext='.pgf'):
         """
         Save a matplotlib figure and track it in this chapter
         """
@@ -113,7 +113,7 @@ class Chapter(object):
         if fig is None:
             fig = plt.gcf()
 
-        fname = self.make_figure_filename(ref, fname=fname)
+        fname = self.make_figure_filename(ref, fname=fname, fext=fext)
 
         fig.savefig(fname)
 
@@ -138,7 +138,7 @@ class Chapter(object):
 
         return self._figure_registry[ref]['fname']
 
-    def build_figure(self, ref, width= r"\columnwidth", **kwargs):
+    def build_figure(self, ref, **kwargs):
         """
         Print a whole figure environment
         """
@@ -149,7 +149,7 @@ class Chapter(object):
                           'label':'fig:{}'.format(ref), }
         default_kwargs.update(kwargs)
 
-        myfig = get_pgf_include(fname, width=width)
+        myfig = get_pgf_include(fname, os.path.abspath(self.fig_dir))
 
         return fig_str.format(myfig=myfig, **default_kwargs)
 

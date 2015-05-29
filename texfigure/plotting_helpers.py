@@ -9,12 +9,12 @@ __all__ = ['fig_str', 'sub_fig_str', 'get_pgf_include']#, 'get_pgf_include', 'ge
 #==============================================================================
 # Some LaTeX code snippiets
 fig_str = r"""
-\begin{{figure*}}
+\begin{{figure}}
     \centering
     {myfig}
     \caption{{{caption}}}
     \label{{{label}}}
-\end{{figure*}}
+\end{{figure}}
 """
 
 sub_fig_str = r"""\begin{{subfigure}}[{placement}]{{{width}}}
@@ -23,8 +23,9 @@ sub_fig_str = r"""\begin{{subfigure}}[{placement}]{{{width}}}
     \label{{{label}}}
 \end{{subfigure}}"""
 
-def get_pgf_include(fname, width=r"\columnwidth"):
-    return r"\pgfimage[width={1}]{{{0}}}".format(fname, width)
+def get_pgf_include(fname, base_path):
+    return r"\IfFileExists{{ {fname} }}{{ \import{{ {base_path} }}{{ {fname} }} }} {{}}".format(fname=fname,
+                                                                                   base_path=base_path)
 
 def get_fig_env(figure_str, **kwargs):
     """
@@ -33,7 +34,7 @@ def get_fig_env(figure_str, **kwargs):
     global fig_count, fig_str
 
     default_kwargs = {'placement':'H', 'caption':'caption',
-                      'label':'fig_{}'.format(fig_count)}
+                      'label':'fig:{}'.format(fig_count)}
 
     default_kwargs.update(kwargs)
 
@@ -47,11 +48,12 @@ def get_subfig_env(subfig_str, caption, label, subplacement='b',
 
 def make_fig_env(cfg, **kwargs):
     fname = kwargs.pop('fname', None)
+    fname = kwargs.pop('base_path', os.path.abspath('.'))
     fig = kwargs.pop('fig', None)
     width = kwargs.pop('width', r"\columnwidth")
 
     fname = save_fig(cfg, fig=fig, fname=fname)
-    fig_str = get_pgf_include(fname, width=width)
+    fig_str = get_pgf_include(fname, base_path)
 
     print(get_fig_env(fig_str, **kwargs))
 
