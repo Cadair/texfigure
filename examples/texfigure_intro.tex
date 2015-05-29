@@ -1,0 +1,180 @@
+\documentclass[]{article}
+
+\usepackage{pythontex}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% PythonTeX Bug Fix % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % 
+% pytexbug fix for context in customcode.
+\makeatletter
+\renewenvironment{pythontexcustomcode}[2][begin]{%
+	\VerbatimEnvironment
+	\Depythontex{env:pythontexcustomcode:om:n}%
+	\ifstrequal{#1}{begin}{}{%
+		\ifstrequal{#1}{end}{}{\PackageError{\pytx@packagename}%
+			{Invalid optional argument for pythontexcustomcode}{}
+		}%
+	}%
+	\xdef\pytx@type{CC:#2:#1}%
+	\edef\pytx@cmd{code}%
+	% PATCH \def\pytx@context{}%
+	\pytx@SetContext
+	% END PATCH
+	\def\pytx@group{none}%
+	\pytx@BeginCodeEnv[none]}%
+{\end{VerbatimOut}%
+\setcounter{FancyVerbLine}{\value{pytx@FancyVerbLineTemp}}%
+\stepcounter{\pytx@counter}%
+}%
+\makeatother
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\usepackage{graphicx}
+\usepackage{pgf}
+\usepackage{float}
+\usepackage{import}
+\usepackage[margin=3cm,noheadfoot]{geometry}
+
+%opening
+\title{An Example of Astropy and PythonTeX Integration}
+\author{Stuart Mumford}
+
+\setpythontexcontext{figurewidth=\the\columnwidth}
+\newcommand{\includepgf}[1]{\IfFileExists{#1}{\input{#1}}{}}
+
+\begin{document}
+\begin{pythontexcustomcode}{py}
+import texfigure
+texfigure.configure_latex_plots(pytex)
+
+pytex.formatter = texfigure.repr_latex_formatter
+
+import matplotlib.pyplot as plt
+\end{pythontexcustomcode}
+\maketitle
+
+\section{Basic PythonTeX}
+
+The basic PythonTeX environments are \verb|\begin{pycode}| and \verb|\py|. \verb|pycode| is a block environment for including Python code, \verb|\py| is a inline output environment, for displaying output.
+
+A simple example of both is to create a variable in a \verb|pycode| environment and then inline it in the text using \verb|\py|:
+
+\begin{pyverbatim}
+\begin{pycode}
+import astropy.units as u
+
+myquantity = 100 * u.kg/u.m**2
+\end{pycode}
+\end{pyverbatim}
+
+\begin{pycode}
+import astropy.units as u
+
+myquantity = 100 * u.kg/u.m**2
+\end{pycode}
+
+You can then include this variable in a sentence using \verb~\py|myquantity|~. The density of Astropy is \py|myquantity|.
+
+\section{Configuring PythonTeX}
+
+It is possible to execute python code in PythonTeX that affects all environments throughout the document. This is commonly used for global imports and configuration.
+It can be achieved using the \verb|\begin{pythontexcustomcode}| environment.
+This block is especially useful for configuring matplotlib to use settings compatible with PythonTeX.
+The matplotlib pgf backend can be configured to use LaTeX for typesetting, and the fonts configured to match that of your LaTeX document.
+A default configuration is provided in the texfigure package, it can be used by including the following code in the preamble of your document:
+
+\begin{verbatim}
+% Inform Python about the desired figure width figurewidth
+\setpythontexcontext{figurewidth=\the\columnwidth}
+\newcommand{\includepgf}[1]{\IfFileExists{#1}{\input{#1}}{}}
+
+\begin{document}
+% Configure Python + matplotlib
+\begin{pythontexcustomcode}{py}
+	import texfigure
+	texfigure.configure_latex_plots(pytex)
+\end{pythontexcustomcode}
+\end{verbatim}
+
+This configuration can be used to generate a plot:
+
+\begin{pyblock}
+from sunpy.data.sample import AIA_171_IMAGE
+import sunpy.map
+
+aiamap = sunpy.map.Map(AIA_171_IMAGE)
+
+fig = plt.figure()
+im = aiamap.plot()
+
+fig.tight_layout(pad=3)
+fig.savefig('myplot.pgf')
+\end{pyblock}
+
+which can be included with the normal LaTeX figure environment:\footnote{The pgf package is required.}
+
+\begin{verbatim}
+\begin{figure}[H]
+	\includepgf{myplot}
+\end{figure}
+\end{verbatim}
+
+\begin{figure}[H]
+	\includepgf{myplot.pgf}
+\end{figure}
+
+\section{Astropy Table}
+
+We can make use of this integration between LaTeX and Python to make the use of tools with LaTeX representation support built in even easier.
+The Astropy Table class has a very powerful TeX formatter, which we will use to inline a Table in this document.
+
+\begin{pyblock}
+import StringIO
+from astropy.table import Table
+
+mytable = StringIO.StringIO()
+
+t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
+	           readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
+	           format="ascii.cds")
+
+# Crop the table down a bit
+t = t[t.colnames[0:10]][0:50]
+
+t.write(mytable, format='latex', latexdict={'tablealign':'H'})
+
+\end{pyblock}
+
+\py|mytable.getvalue()|
+
+
+\section{Figure Manager}
+
+I pulled this out of my Thesis repo this morning!!
+
+\begin{pycode}[chapter2]
+from texfigure import Chapter
+ch2 = Chapter(pytex, 2, './')
+\end{pycode}
+
+So, as I pointed out yesterday, SunPy is awesome! It makes graphs and everything.
+
+\begin{pycode}[chapter2]
+from sunpy.data.sample import AIA_171_IMAGE
+import sunpy.map
+
+aiamap = sunpy.map.Map(AIA_171_IMAGE)
+
+fig = plt.figure()
+im = aiamap.plot()
+aiamap.draw_grid()
+
+ch2.save_figure('sunpy1', fig)
+\end{pycode}
+
+\py[chapter2]|ch2.build_figure('sunpy1',
+width=r"0.9\columnwidth",
+caption=r"EUV image of the million degree solar corona, taken with the Atmospheric Imaging Assembly on the NASA Solar Dynamics Observatory.")|
+
+You can now reference the figure above, \ref{fig:sunpy1}.
+
+\end{document}
