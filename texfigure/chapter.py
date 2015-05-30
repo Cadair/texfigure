@@ -14,9 +14,11 @@ import matplotlib.pyplot as plt
 
 from plotting_helpers import fig_str, sub_fig_str, get_pgf_include
 
+__all__ = ['Chapter', 'Figure']
+
 class Figure(object):
     """
-    A class for holding a matplotlib figure, that knows how to represent itself
+    A class for holding a figure file, that knows how to represent itself
     as a latex environment.
 
     Parameters
@@ -46,6 +48,13 @@ class Figure(object):
     placement : string
         The figure envrionment placement value. (Default ``H``)
 
+    figure_width : string
+        The latex figure width, not used for pgf files. (Default ``0.9\columnwidth``)
+
+    extension_mapping : dict
+        A mapping of file extensions to methods to return LaTeX includes for
+        the file type.
+
     fig_str : string
         The latex figure layout template.
     """
@@ -59,6 +68,7 @@ class Figure(object):
 \end{{figure}}
 """
 
+
     def __init__(self, file_name, reference=None):
         file_name = os.path.abspath(file_name)
         if not reference:
@@ -71,11 +81,28 @@ class Figure(object):
         self.caption = "Figure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
         self.placement = 'H'
+        self.figure_width = '0.9\columnwidth'
+
+        self.extension_mapping = {'.pgf': self.get_pgf_include,
+                                  '.png': self.get_standard_include,
+                                  '.pdf': self.get_standard_include}
+
+    @property
+    def extension(self):
+        """
+        File extension of the file_name.
+        """
+        return os.path.splitext(self.fname)[1]
 
     def get_pgf_include(self):
         return r"\IfFileExists{{ {file_name} }}{{ \import{{ {base_dir} }}{{ {fname} }} }} {{}}".format(
                                                       fname=self.fname,
                                                       base_dir=self.base_dir,
+                                                      file_name=self.file_name)
+
+    def get_standard_include(self):
+        return "\includegraphics[width={width}]{{ {file_name} }}".format(
+                                                      width=self.figure_width,
                                                       file_name=self.file_name)
 
     def _repr_latex_(self):
@@ -84,7 +111,7 @@ class Figure(object):
                           'caption':self.caption,
                           'label': self.label}
 
-        myfig = self.get_pgf_include()
+        myfig = self.extension_mapping[self.extension]()
 
         return self.fig_str.format(myfig=myfig, **default_kwargs)
 
@@ -92,6 +119,19 @@ class Figure(object):
 class Chapter(object):
     """
     A class holding information about different things in this chapter.
+
+    Parameters
+    ----------
+
+    pytex : ``PythonTeXUtils`` instance.
+        The pytex object from the PythonTeX session.
+
+    number : float
+        Numerical index for this chapter.
+
+    chapter_path : string
+        Path to the base directory for all files for this chapter.
+
     """
 
     def __init__(self, pytex, number, chapter_path):
