@@ -24,8 +24,8 @@ sub_fig_str = r"""\begin{{subfigure}}[{placement}]{{{width}}}
 \end{{subfigure}}"""
 
 def get_pgf_include(fname, base_path):
-    return r"\IfFileExists{{ {fname} }}{{ \import{{ {base_path} }}{{ {fname} }} }} {{}}".format(fname=fname,
-                                                                                   base_path=base_path)
+    return r"\IfFileExists{{{fname}}}{{\import{{{base_path}}}{{{fname}}}}}{{}}".format(fname=fname,
+                                                                                       base_path=base_path)
 
 def get_fig_env(figure_str, **kwargs):
     """

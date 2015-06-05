@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('pgf')
 
 
-def figsize(pytex, scale=0.95):
+def figsize(pytex, scale=None):
     """
     Configure a matplotlib figure size based on the native page width and the
     golden ratio.
@@ -52,15 +52,20 @@ def figsize(pytex, scale=0.95):
 
     """
     if hasattr(pytex, 'context'):
-        textwidth_pt = pytex.context.get('figurewidth', 'pt')[:-2]
+        textwidth_pt = float(pytex.context.get('figurewidth', 'pt')[:-2])
+        if not scale:
+            scale = float(pytex.context.get('figscale', 0.95))
     else:
         textwidth_pt = None
+        if not scale:
+            scale = 0.95
 
     if not textwidth_pt:
         raise AttributeError(r"pytex.context has no attribute figurewidth, please "
                              r"execute the following command in the preamble: "
                              r"\setpythontexcontext{figurewidth=\the\textwidth}")
     textwidth_in = pytex.pt_to_in(textwidth_pt)
+
 
     golden_mean = (np.sqrt(5.0)-1.0)/2.0
     fig_width = scale*textwidth_in # 90% width
@@ -100,3 +105,32 @@ def configure_latex_plots(pytex):
     matplotlib.rcParams.update(pgf_with_latex)
 
 
+
+def preamble_setup():
+    preamble = """
+    % pytexbug fix for context in customcode.
+    \makeatletter
+    \renewenvironment{pythontexcustomcode}[2][begin]{%
+    	\VerbatimEnvironment
+    	\Depythontex{env:pythontexcustomcode:om:n}%
+    	\ifstrequal{#1}{begin}{}{%
+    		\ifstrequal{#1}{end}{}{\PackageError{\pytx@packagename}%
+    			{Invalid optional argument for pythontexcustomcode}{}
+    		}%
+    	}%
+    	\xdef\pytx@type{CC:#2:#1}%
+    	\edef\pytx@cmd{code}%
+    	% PATCH \def\pytx@context{}%
+    	\pytx@SetContext
+    	% END PATCH
+    	\def\pytx@group{none}%
+    	\pytx@BeginCodeEnv[none]}%
+    {\end{VerbatimOut}%
+    \setcounter{FancyVerbLine}{\value{pytx@FancyVerbLineTemp}}%
+    \stepcounter{\pytx@counter}%
+    }%
+    \makeatother
+
+    \setpythontexcontext{textwidth=\the\textwidth}
+    """
+    return preamble

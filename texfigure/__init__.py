@@ -15,7 +15,7 @@ from ._astropy_init import *
 
 # For egg_info test builds to pass, put package imports here.
 if not _ASTROPY_SETUP_:
-    from setup_mpl import configure_latex_plots # This sets pgf backend
+    from setup_mpl import configure_latex_plots, figsize # This sets pgf backend
     from chapter import *
 
 import sys

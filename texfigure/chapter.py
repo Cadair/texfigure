@@ -10,11 +10,13 @@ import os
 import sys
 from collections import OrderedDict
 
+import numpy as np
+
 import matplotlib.pyplot as plt
 
 from plotting_helpers import fig_str, sub_fig_str, get_pgf_include
 
-__all__ = ['Chapter', 'Figure']
+__all__ = ['Manager', 'Figure', 'MultiFigure']
 
 class Figure(object):
     """
@@ -68,20 +70,33 @@ class Figure(object):
 \end{{figure}}
 """
 
+    subfig_str = r"""
+    \begin{{subfigure}}[{placement}]{{{width}}}
+        {myfig}
+        \caption{{{caption}}}
+        \label{{{label}}}
+    \end{{subfigure}}"""
+
 
     def __init__(self, file_name, reference=None):
         file_name = os.path.abspath(file_name)
         if not reference:
-            self.reference = os.path.splitext(os.path.basename(file_name))
+            self.reference = os.path.splitext(os.path.basename(file_name))[1]
+        else:
+            self.reference = reference
+
+        self.reference = self.reference.replace('_','-')
 
         self.file_name = file_name
         self.fname = os.path.basename(file_name)
-        self.base_dir = os.path.dirname(file_name)
+        self.base_dir = os.path.dirname(file_name) + '/'
 
         self.caption = "Figure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
         self.placement = 'H'
-        self.figure_width = '0.9\columnwidth'
+        self.figure_width = r'0.9\columnwidth'
+        self.subfig_width = r'0.45\textwidth'
+        self.subfig_placement = 'b'
 
         self.extension_mapping = {'.pgf': self.get_pgf_include,
                                   '.png': self.get_standard_include,
@@ -95,13 +110,13 @@ class Figure(object):
         return os.path.splitext(self.fname)[1]
 
     def get_pgf_include(self):
-        return r"\IfFileExists{{ {file_name} }}{{ \import{{ {base_dir} }}{{ {fname} }} }} {{}}".format(
+        return r"\IfFileExists{{{file_name}}}{{\import{{{base_dir}}}{{{fname}}}}}{{}}".format(
                                                       fname=self.fname,
                                                       base_dir=self.base_dir,
                                                       file_name=self.file_name)
 
     def get_standard_include(self):
-        return "\includegraphics[width={width}]{{ {file_name} }}".format(
+        return "\includegraphics[width={width}]{{{file_name}}}".format(
                                                       width=self.figure_width,
                                                       file_name=self.file_name)
 
@@ -115,10 +130,88 @@ class Figure(object):
 
         return self.fig_str.format(myfig=myfig, **default_kwargs)
 
+    def repr_subfigure(self):
+        default_kwargs = {'placement': self.subfig_placement,
+                          'width': self.subfig_width,
+                          'caption': self.caption,
+                          'label': self.label}
 
-class Chapter(object):
+        myfig = self.extension_mapping[self.extension]()
+
+        return self.subfig_str.format(myfig=myfig, **default_kwargs)
+
+
+class MultiFigure(object):
     """
-    A class holding information about different things in this chapter.
+    A Multifigure is a container object for building subfigures from
+    `texfigure.Figure` classes.
+
+    Parameters
+    ----------
+
+    nrows : float
+        Number of rows for the MultiFigure.
+
+    ncols : float
+        Number of columns for the MultiFigure.
+
+    """
+
+    fig_str = r"""
+\begin{{figure*}}
+    \centering
+    {myfig}
+    \caption{{ {caption} }}
+    \label{{ {label} }}
+\end{{figure*}}
+"""
+
+    def __init__(self, nrows, ncols, reference=''):
+        self.nrows = nrows
+        self.ncols = ncols
+        self.reference = reference
+
+        self.caption = "MultiFigure {}".format(self.reference)
+        self.label = "fig:{}".format(self.reference)
+        self.placement = 'H'
+
+        self.figures = np.zeros([nrows, ncols], dtype=object)
+        self.figures[:] = None
+
+    def append(self, figure):
+        """
+        Add a `texfigure.Figure` object to the next empty slot in the MultiFigure.
+        """
+        if not isinstance(figure, Figure):
+            raise TypeError("Only texfigure.Figures can be appended to a MultiFigure")
+
+        empties = np.logical_not(self.figures.flat).nonzero()[0]
+
+        if len(empties):
+            self.figures.flat[empties[0]] = figure
+        else:
+            raise ValueError("This MultiFigure is full")
+
+    def _repr_latex_(self):
+
+        default_kwargs = {'placement':self.placement,
+                          'caption':self.caption,
+                          'label': self.label}
+
+        subfigures = ""
+
+        for i, fig in enumerate(self.figures.flat):
+            if fig:
+                if i % self.ncols == 0:
+                    subfigures +='\n'
+                subfigures += fig.repr_subfigure()
+
+        return self.fig_str.format(myfig=subfigures, **default_kwargs)
+
+
+class Manager(object):
+    """
+    A class holding information about different figures and data.
 
     Parameters
     ----------
@@ -129,32 +222,98 @@ class Chapter(object):
     number : float
         Numerical index for this chapter.
 
-    chapter_path : string
-        Path to the base directory for all files for this chapter.
+    base_path : string
+        Path to the base directory for all files for this manager.
+
+    python_dir : bool or string
+        Path to a directory containing Python code to be added to the Python
+        path.
 
     """
 
-    def __init__(self, pytex, number, chapter_path):
+    def __init__(self, pytex, base_path, number=1, python_dir=True,
+                 data_dir=True, fig_dir=True):
+
         self.pytex = pytex
         self._number = number
-        self._chapter_path = chapter_path
+        self._base_path = base_path
 
-        # Add this chapters Python dir to the sys path
-        self.python_dir = os.path.join(self.chapter_path, 'Python')
-        if not os.path.exists(self.python_dir):
-            os.makedirs(self.python_dir)
-        sys.path.append(self.python_dir)
 
-        self.data_dir = os.path.join(self.chapter_path, 'Data')
-        if not os.path.exists(self.data_dir):
-            os.makedirs(self.data_dir)
+        self._python_dir = None
+        self.python_dir = python_dir
 
-        self.fig_dir = os.path.join(self.chapter_path, 'Figs')
-        if not os.path.exists(self.fig_dir):
-            os.makedirs(self.fig_dir)
+        self._data_dir = None
+        self.data_dir = data_dir
+
+        self._fig_dir = None
+        self.fig_dir = fig_dir
 
         self.fig_count = 1
         self._figure_registry = OrderedDict()
+
+    def _add_dir(self, adir, attr, default):
+        if adir:
+            if not isinstance(adir, str):
+                setattr(self, attr, os.path.join(self._base_path, default))
+            else:
+                setattr(self, attr, adir)
+
+            if not os.path.exists(getattr(self, attr)):
+                os.makedirs(getattr(self, attr))
+
+    @property
+    def data_dir(self):
+        """
+        Data directory for files tracked with this manager.
+
+        If data_dir is set to False no directory will be used, if set to True
+        the default directory of ``manager.base_path/Data`` will be used, if
+        data_dir is set to a string then that dir will be used.
+        """
+        return self._data_dir
+
+    @data_dir.setter
+    def data_dir(self, value):
+        self._add_dir(value, '_data_dir', 'Data')
+
+    @property
+    def fig_dir(self):
+        """
+        Figure directory for figures tracked with this manager.
+
+        If fig_dir is set to False no directory will be used, if set to True
+        the default directory of ``manager.base_path/Figs`` will be used, if
+        fig_dir is set to a string then that dir will be used.
+        """
+        return self._fig_dir
+
+    @fig_dir.setter
+    def fig_dir(self, value):
+        self._add_dir(value, '_fig_dir', 'Figs')
+
+    @property
+    def python_dir(self):
+        """
+        Python directory for custom python code, this directory will be added
+        to your Python Path.
+
+        If python_dir is set to False no directory will be used, if set to True
+        the default directory of ``manager.base_path/Python`` will be used, if
+        python_dir is set to a string then that dir will be used.
+
+        Notes
+        -----
+
+        If this attribute is changed, the old directory will not be removed from
+        the python path.
+        """
+        return self._python_dir
+
+    @python_dir.setter
+    def python_dir(self, value):
+        self._add_dir(value, '_python_dir', 'Python')
+        if self._python_dir:
+            sys.path.append(self._python_dir)
 
     @property
     def number(self):
@@ -196,7 +355,7 @@ class Chapter(object):
             The file name
         """
         if not fname:
-            fname = 'Chapter{}_Figure{}_{}{}'.format(self.number, self.fig_count,
+            fname = 'Chapter{}-Figure{}-{}{}'.format(self.number, self.fig_count,
                                                      ref, fext)
 
         fname = fname
@@ -211,6 +370,7 @@ class Chapter(object):
         ----------
         ref : string
             The latex reference for this figure (excluding 'fig:')
+
         fname : string
             Overwrite the default file name template with this name.
         """
@@ -228,11 +388,11 @@ class Chapter(object):
         if fig is None:
             fig = plt.gcf()
 
-        fname = self.make_figure_filename(ref, fname=fname, fext=fext)
+        fname = os.path.join(self.fig_dir, self.make_figure_filename(ref, fname=fname, fext=fext))
 
         fig.savefig(fname)
 
-        Fig = Figure(os.path.abspath(fname))
+        Fig = Figure(fname, reference=ref)
 
         self.add_figure(ref, Fig)
 
