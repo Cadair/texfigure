@@ -380,7 +380,7 @@ class Manager(object):
         self._figure_registry[ref] = {'number': self.fig_count, 'Figure': Fig}
         self.fig_count += 1
 
-    def save_figure(self, ref, fig=None, fname=None, fext='.pgf'):
+    def save_figure(self, ref, fig=None, fname=None, fext='.pdf'):
         """
         Save a matplotlib figure and track it in this chapter
         """
