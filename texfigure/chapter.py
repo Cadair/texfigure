@@ -65,8 +65,8 @@ class Figure(object):
 \begin{{figure}}
     \centering
     {myfig}
-    \caption{{ {caption} }}
-    \label{{ {label} }}
+    \caption{{{caption}}}
+    \label{{{label}}}
 \end{{figure}}
 """
 
@@ -94,7 +94,7 @@ class Figure(object):
         self.caption = "Figure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
         self.placement = 'H'
-        self.figure_width = r'0.9\columnwidth'
+        self.figure_width = r'0.95\columnwidth'
         self.subfig_width = r'0.45\textwidth'
         self.subfig_placement = 'b'
 
@@ -338,7 +338,7 @@ class Manager(object):
         self.pytex.add_dependencies(fname)
         return fname
 
-    def make_figure_filename(self, ref, fname=None, fext=''):
+    def make_figure_filename(self, ref, fname=None, fext='', fullpath=False):
         """
         Return the standard template figure name with number.
 
@@ -358,7 +358,8 @@ class Manager(object):
             fname = 'Chapter{}-Figure{}-{}{}'.format(self.number, self.fig_count,
                                                      ref, fext)
 
-        fname = fname
+        if fullpath:
+            fname = os.path.join(self.fig_dir, fname)
 
         return fname
 
@@ -388,7 +389,8 @@ class Manager(object):
         if fig is None:
             fig = plt.gcf()
 
-        fname = os.path.join(self.fig_dir, self.make_figure_filename(ref, fname=fname, fext=fext))
+        fname = self.make_figure_filename(ref, fname=fname, fext=fext,
+                                          fullpath=True)
 
         fig.savefig(fname)
 
@@ -415,6 +417,47 @@ class Manager(object):
 
         return self._figure_registry[ref]['Figure']
 
+    def get_multifigure(self, nrows, ncols, refs, reference=''):
+        """
+        Return a `texfigure.MultiFigure` object made up of a set 
+        of figure references stored in this `~texfigure.Manager` instance.
+        
+        Parameters
+        ----------
+        
+        nrows : float
+            Number of rows for the MultiFigure.
+    
+        ncols : float
+            Number of columns for the MultiFigure.
+            
+        refs : list
+            A list of figure references no more than nrows * ncols long.
+        
+        reference : string
+            The reference for the `texfigure.MultiFigure` object.
+        
+        Returns
+        -------
+        
+        multfigure : `texfigure.MultiFigure`
+            The initilised and populated multifigure object.
+        
+        """
+
+        if len(refs) > nrows * ncols:
+            raise ValueError("You can not specify more references than number "
+            "of spaces in your multifigure grid.")
+        
+        mf = MultiFigure(nrows, ncols, reference=reference)
+    
+        for ref in refs:
+            lfig = self.get_figure(ref)
+            mf.append(lfig)
+        
+        return mf
+        
+        
     def build_figure(self, ref, **kwargs):
         """
         Print a whole figure environment
