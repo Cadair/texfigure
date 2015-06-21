@@ -14,7 +14,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-from plotting_helpers import fig_str, sub_fig_str, get_pgf_include
+from plotting_helpers import get_pgf_include
 
 __all__ = ['Manager', 'Figure', 'MultiFigure']
 
@@ -161,8 +161,8 @@ class MultiFigure(object):
 \begin{{figure*}}
     \centering
     {myfig}
-    \caption{{ {caption} }}
-    \label{{ {label} }}
+    \caption{{{caption}}}
+    \label{{{label}}}
 \end{{figure*}}
 """
 
@@ -419,45 +419,45 @@ class Manager(object):
 
     def get_multifigure(self, nrows, ncols, refs, reference=''):
         """
-        Return a `texfigure.MultiFigure` object made up of a set 
+        Return a `texfigure.MultiFigure` object made up of a set
         of figure references stored in this `~texfigure.Manager` instance.
-        
+
         Parameters
         ----------
-        
+
         nrows : float
             Number of rows for the MultiFigure.
-    
+
         ncols : float
             Number of columns for the MultiFigure.
-            
+
         refs : list
             A list of figure references no more than nrows * ncols long.
-        
+
         reference : string
             The reference for the `texfigure.MultiFigure` object.
-        
+
         Returns
         -------
-        
+
         multfigure : `texfigure.MultiFigure`
             The initilised and populated multifigure object.
-        
+
         """
 
         if len(refs) > nrows * ncols:
             raise ValueError("You can not specify more references than number "
             "of spaces in your multifigure grid.")
-        
+
         mf = MultiFigure(nrows, ncols, reference=reference)
-    
+
         for ref in refs:
             lfig = self.get_figure(ref)
             mf.append(lfig)
-        
+
         return mf
-        
-        
+
+
     def build_figure(self, ref, **kwargs):
         """
         Print a whole figure environment
