@@ -12,11 +12,21 @@ from collections import OrderedDict
 
 import numpy as np
 
+import matplotlib
 import matplotlib.pyplot as plt
 
-from plotting_helpers import get_pgf_include
+try:
+    import mayavi
+    from mayavi import mlab
+    HAVE_MAYAVI = True
+
+except ImportError:
+    HAVE_MAYAVI = FALSE
+
+
 
 __all__ = ['Manager', 'Figure', 'MultiFigure']
+
 
 class Figure(object):
     """
@@ -102,6 +112,7 @@ class Figure(object):
                                   '.png': self.get_standard_include,
                                   '.pdf': self.get_standard_include}
 
+
     @property
     def extension(self):
         """
@@ -109,11 +120,13 @@ class Figure(object):
         """
         return os.path.splitext(self.fname)[1]
 
+
     def get_pgf_include(self):
         return r"\IfFileExists{{{file_name}}}{{\import{{{base_dir}}}{{{fname}}}}}{{}}".format(
                                                       fname=self.fname,
                                                       base_dir=self.base_dir,
                                                       file_name=self.file_name)
+
 
     def get_standard_include(self):
         return "\includegraphics[width={width}]{{{file_name}}}".format(
@@ -129,6 +142,7 @@ class Figure(object):
         myfig = self.extension_mapping[self.extension]()
 
         return self.fig_str.format(myfig=myfig, **default_kwargs)
+
 
     def repr_subfigure(self):
         default_kwargs = {'placement': self.subfig_placement,
@@ -178,6 +192,7 @@ class MultiFigure(object):
         self.figures = np.zeros([nrows, ncols], dtype=object)
         self.figures[:] = None
 
+
     def append(self, figure):
         """
         Add a `texfigure.Figure` object to the next empty slot in the MultiFigure.
@@ -191,6 +206,7 @@ class MultiFigure(object):
             self.figures.flat[empties[0]] = figure
         else:
             raise ValueError("This MultiFigure is full")
+
 
     def _repr_latex_(self):
 
@@ -229,6 +245,15 @@ class Manager(object):
         Path to a directory containing Python code to be added to the Python
         path.
 
+
+    Attributes
+    ----------
+
+    savefig_functions : `dict`
+        A mapping between figure types and functions to save them to a given
+        filename. Functions in the mapping must accept two arguments, the
+        figure object and a filename.
+
     """
 
     def __init__(self, pytex, base_path, number=1, python_dir=True,
@@ -251,6 +276,12 @@ class Manager(object):
         self.fig_count = 1
         self._figure_registry = OrderedDict()
 
+        self.savefig_functions = {matplotlib.figure.Figure: self._save_mpl_figure}
+
+        if HAVE_MAYAVI:
+            self.savefig_functions[mayavi.core.scene.Scene] = self._save_mayavi_scene
+
+
     def _add_dir(self, adir, attr, default):
         if adir:
             if not isinstance(adir, str):
@@ -260,6 +291,7 @@ class Manager(object):
 
             if not os.path.exists(getattr(self, attr)):
                 os.makedirs(getattr(self, attr))
+
 
     @property
     def data_dir(self):
@@ -272,9 +304,11 @@ class Manager(object):
         """
         return self._data_dir
 
+
     @data_dir.setter
     def data_dir(self, value):
         self._add_dir(value, '_data_dir', 'Data')
+
 
     @property
     def fig_dir(self):
@@ -287,9 +321,11 @@ class Manager(object):
         """
         return self._fig_dir
 
+
     @fig_dir.setter
     def fig_dir(self, value):
         self._add_dir(value, '_fig_dir', 'Figs')
+
 
     @property
     def python_dir(self):
@@ -309,19 +345,23 @@ class Manager(object):
         """
         return self._python_dir
 
+
     @python_dir.setter
     def python_dir(self, value):
         self._add_dir(value, '_python_dir', 'Python')
         if self._python_dir:
             sys.path.append(self._python_dir)
 
+
     @property
     def number(self):
         return self._number
 
+
     @property
     def chapter_path(self):
         return self._chapter_path
+
 
     def data_file(self, file_name):
         """
@@ -336,7 +376,9 @@ class Manager(object):
 
         fname = os.path.join(self.data_dir, file_name)
         self.pytex.add_dependencies(fname)
+
         return fname
+
 
     def make_figure_filename(self, ref, fname=None, fext='', fullpath=False):
         """
@@ -363,6 +405,32 @@ class Manager(object):
 
         return fname
 
+
+    def _save_mpl_figure(self, fig, filename, **kwargs):
+        """
+        A wrapper to save a matplotlib figure object to a file.
+        """
+
+        fig.savefig(filename)
+
+
+    def _save_mayavi_scene(self, fig, filename, azimuth=153, elevation=62,
+                           distance=400, focalpoint=[25., 63., 60.], aa=16,
+                           size=(1024,1024)):
+        """
+        A wrapper to save a mayavi figure object
+        """
+        scene = fig.scene
+
+        scene.anti_aliasing_frames = aa
+
+        mlab.view(azimuth=azimuth, elevation=elevation, distance=distance,
+                  focalpoint=focalpoint)
+
+
+        scene.save(filename, size=size)
+
+
     def add_figure(self, ref, Fig):
         """
         Add the figure to the tracked files and increment the figure count.
@@ -372,8 +440,8 @@ class Manager(object):
         ref : string
             The latex reference for this figure (excluding 'fig:')
 
-        fname : string
-            Overwrite the default file name template with this name.
+        Fig : `texfigure.Figure`
+            The `~texfigure.Figure` object to add to the manager.
         """
 
         self.pytex.add_created(Fig.file_name)
@@ -381,9 +449,38 @@ class Manager(object):
         self._figure_registry[ref] = {'number': self.fig_count, 'Figure': Fig}
         self.fig_count += 1
 
-    def save_figure(self, ref, fig=None, fname=None, fext='.pdf'):
+
+    def save_figure(self, ref, fig=None, fname=None, fext='.pdf', **kwargs):
         """
-        Save a matplotlib figure and track it in this chapter
+        Save a figure to a file, and track it using this manager object.
+
+        Parameters
+        ----------
+
+        ref : string
+            A string to use as a key inside this manager, and to add to the
+            filename and to use a the latex reference.
+
+        fig : object
+            A figure object of a type that has an entry in the
+            `~texfigure.Manager.savefig_functions` dictionary. If None it will
+            be assumed that the current ``pyplot`` figure is to be used and
+            `~matplotlib.pyplot.gcf` will be called.
+
+        fname : string
+            The file name to be used, not including the extension or the path.
+
+        fext : string
+            The file extension to be used to save the file.
+
+        kwargs : `dict`
+            Other keyword arguments are passed onto the save figure function.
+
+        Returns
+        -------
+
+        Fig : `texfigure.Figure`
+            The `~texfigure.Figure` object added to this `~texfigure.Manager`.
         """
 
         if fig is None:
@@ -392,13 +489,14 @@ class Manager(object):
         fname = self.make_figure_filename(ref, fname=fname, fext=fext,
                                           fullpath=True)
 
-        fig.savefig(fname)
+        self.savefig_functions[type(fig)](fig, fname, **kwargs)
 
         Fig = Figure(fname, reference=ref)
 
         self.add_figure(ref, Fig)
 
         return Fig
+
 
     def get_figure(self, ref):
         """
@@ -416,6 +514,7 @@ class Manager(object):
         """
 
         return self._figure_registry[ref]['Figure']
+
 
     def get_multifigure(self, nrows, ncols, refs, reference=''):
         """
@@ -470,17 +569,3 @@ class Manager(object):
 
         return Fig
 
-    def build_subfigure(self, ref, **kwargs):
-        """
-        Print a whole figure environment
-        """
-
-        fname = self.get_figure_filename(ref)
-
-        default_kwargs = {'placement':'b', 'caption':'Figure {}'.format(ref),
-                          'label':'fig:{}'.format(ref), 'width':r'\columnwidth'}
-        default_kwargs.update(kwargs)
-
-        myfig = get_pgf_include(fname)
-
-        return sub_fig_str.format(myfig=myfig, **default_kwargs)
