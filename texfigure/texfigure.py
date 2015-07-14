@@ -21,7 +21,7 @@ try:
     HAVE_MAYAVI = True
 
 except ImportError:
-    HAVE_MAYAVI = FALSE
+    HAVE_MAYAVI = False
 
 
 
@@ -276,10 +276,10 @@ class Manager(object):
         self.fig_count = 1
         self._figure_registry = OrderedDict()
 
-        self.savefig_functions = {matplotlib.figure.Figure: self._save_mpl_figure}
+        self.savefigure_functions = {matplotlib.figure.Figure: self._save_mpl_figure}
 
         if HAVE_MAYAVI:
-            self.savefig_functions[mayavi.core.scene.Scene] = self._save_mayavi_scene
+            self.savefigure_functions[mayavi.core.scene.Scene] = self._save_mayavi_figure
 
 
     def _add_dir(self, adir, attr, default):
@@ -414,9 +414,9 @@ class Manager(object):
         fig.savefig(filename)
 
 
-    def _save_mayavi_scene(self, fig, filename, azimuth=153, elevation=62,
-                           distance=400, focalpoint=[25., 63., 60.], aa=16,
-                           size=(1024,1024)):
+    def _save_mayavi_figure(self, fig, filename, azimuth=153, elevation=62,
+                            distance=400, focalpoint=[25., 63., 60.], aa=16,
+                            size=(1024,1024)):
         """
         A wrapper to save a mayavi figure object
         """
@@ -489,7 +489,7 @@ class Manager(object):
         fname = self.make_figure_filename(ref, fname=fname, fext=fext,
                                           fullpath=True)
 
-        self.savefig_functions[type(fig)](fig, fname, **kwargs)
+        self.savefigure_functions[type(fig)](fig, fname, **kwargs)
 
         Fig = Figure(fname, reference=ref)
 
