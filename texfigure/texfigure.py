@@ -24,6 +24,13 @@ except ImportError:
     HAVE_MAYAVI = False
 
 
+try:
+    import yt
+    HAVE_YT = True
+
+except ImportError:
+    HAVE_YT = False
+
 
 __all__ = ['Manager', 'Figure', 'MultiFigure']
 
@@ -105,7 +112,7 @@ class Figure(object):
         self.label = "fig:{}".format(self.reference)
         self.placement = 'H'
         self.figure_width = r'0.95\columnwidth'
-        self.subfig_width = r'0.45\textwidth'
+        self.subfig_width = r'0.45\columnwidth'
         self.subfig_placement = 'b'
 
         self.extension_mapping = {'.pgf': self.get_pgf_include,
@@ -252,7 +259,8 @@ class Manager(object):
     savefig_functions : `dict`
         A mapping between figure types and functions to save them to a given
         filename. Functions in the mapping must accept two arguments, the
-        figure object and a filename.
+        figure object and a filename, the function must return the filename
+        as saved to disk.
 
     """
 
@@ -280,6 +288,9 @@ class Manager(object):
 
         if HAVE_MAYAVI:
             self.savefigure_functions[mayavi.core.scene.Scene] = self._save_mayavi_figure
+
+        if HAVE_YT:
+            self.savefigure_functions[yt.visualization.plot_container.ImagePlotContainer] = self._save_yt_ipc
 
 
     def _add_dir(self, adir, attr, default):
@@ -413,6 +424,8 @@ class Manager(object):
 
         fig.savefig(filename)
 
+        return filename
+
 
     def _save_mayavi_figure(self, fig, filename, azimuth=153, elevation=62,
                             distance=400, focalpoint=[25., 63., 60.], aa=16,
@@ -429,6 +442,20 @@ class Manager(object):
 
 
         scene.save(filename, size=size)
+
+        return filename
+
+
+    def _save_yt_ipc(self, slc, filename, **kwargs):
+        if len(slc.plots) != 1:
+            raise NotImplementedError("Can't currently handle a container with"
+                                      " more than one plot!")
+
+
+        fname, suffix = os.path.splitext(filename)
+        filename, = slc.save(fname, suffix=suffix[1:], **kwargs)
+
+        return filename
 
 
     def add_figure(self, ref, Fig):
@@ -489,7 +516,10 @@ class Manager(object):
         fname = self.make_figure_filename(ref, fname=fname, fext=fext,
                                           fullpath=True)
 
-        self.savefigure_functions[type(fig)](fig, fname, **kwargs)
+
+        for atype in self.savefigure_functions.keys():
+            if issubclass(type(fig), atype):
+                fname = self.savefigure_functions[atype](fig, fname, **kwargs)
 
         Fig = Figure(fname, reference=ref)
 
