@@ -79,7 +79,7 @@ class Figure(object):
     """
 
     fig_str = r"""
-\begin{{figure}}
+\begin{{figure}}[{placement}]
     \centering
     {myfig}
     \caption{{{caption}}}
@@ -110,7 +110,7 @@ class Figure(object):
 
         self.caption = "Figure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
-        self.placement = 'H'
+        self.placement = 'h'
         self.figure_width = r'0.95\columnwidth'
         self.subfig_width = r'0.45\columnwidth'
         self.subfig_placement = 'b'
@@ -180,7 +180,7 @@ class MultiFigure(object):
 
     fig_str = r"""
 \begin{{figure*}}
-    \centering
+    {frontmatter}
     {myfig}
     \caption{{{caption}}}
     \label{{{label}}}
@@ -195,6 +195,7 @@ class MultiFigure(object):
         self.caption = "MultiFigure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
         self.placement = 'H'
+        self.frontmatter = '\centering'
 
         self.figures = np.zeros([nrows, ncols], dtype=object)
         self.figures[:] = None
@@ -219,7 +220,8 @@ class MultiFigure(object):
 
         default_kwargs = {'placement':self.placement,
                           'caption':self.caption,
-                          'label': self.label}
+                          'label': self.label,
+                          'frontmatter': self.frontmatter}
 
         subfigures = ""
 

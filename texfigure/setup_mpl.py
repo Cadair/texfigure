@@ -87,15 +87,15 @@ def configure_latex_plots(pytex):
     pgf_with_latex = {
         "pgf.texsystem": "pdflatex",
         "text.usetex": True,
-        "font.size": 10,
+        "font.size": 12,
         "font.family": "serif",
         "font.serif": [],  # blank entries should cause plots to inherit fonts from the document
         "font.sans-serif": [],
         "font.monospace": [],
-        "axes.labelsize": 10,  # LaTeX default is 10pt font.
+        "axes.labelsize": 12,  # LaTeX default is 10pt font.
         "legend.fontsize": 8,
-        "xtick.labelsize": 8,
-        "ytick.labelsize": 8,
+        "xtick.labelsize": 12,
+        "ytick.labelsize": 12,
         "figure.figsize": figsize(pytex),
         "pgf.preamble": [
             r"\usepackage[utf8x]{inputenc}",    # use utf8 fonts becasue your computer can handle it :)
