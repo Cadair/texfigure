@@ -50,6 +50,7 @@ class Figure(object):
         A reference label for this figure, used as default values for caption
         and label.
 
+
     Attributes
     ----------
     fname : string
@@ -65,10 +66,16 @@ class Figure(object):
         The latex label assigned to the figure envrionment. (Default ``fig:reference``)
 
     placement : string
-        The figure envrionment placement value. (Default ``H``)
+        The figure envrionment placement value. (Default ``h``)
 
     figure_width : string
         The latex figure width, not used for pgf files. (Default ``0.9\columnwidth``)
+
+    subfig_width : string
+        LaTeX figure width for when the figure is included in a subfigure. (Default ``0.45\columnwidth``)
+
+    subfig_placement : string
+        The subfigure environment placement. (Default ``b``)
 
     extension_mapping : dict
         A mapping of file extensions to methods to return LaTeX includes for
@@ -175,6 +182,28 @@ class MultiFigure(object):
 
     ncols : float
         Number of columns for the MultiFigure.
+
+
+    Attributes
+    ----------
+
+    figures : `numpy.ndarray`
+        Array holding `texfigure.Figure` objects, has a shape of (nrows, ncols).
+
+    caption : string
+        The caption to use when representing the figure.
+        (Default ``Figure reference``)
+
+    label : string
+        The latex label assigned to the figure envrionment.
+        (Default ``fig:reference``)
+
+    placement : string
+        The figure envrionment placement value. (Default ``h``)
+
+    frontmatter : string
+        LaTeX code included in the first line of the figure environment.
+        (Default ``\centering``)
 
     """
 
@@ -587,17 +616,4 @@ class Manager(object):
             mf.append(lfig)
 
         return mf
-
-
-    def build_figure(self, ref, **kwargs):
-        """
-        Print a whole figure environment
-        """
-
-        Fig = self.get_figure(ref)
-
-        for k,v in kwargs.items():
-            setattr(Fig, k, v)
-
-        return Fig
 
