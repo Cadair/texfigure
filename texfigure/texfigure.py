@@ -43,53 +43,53 @@ class Figure(object):
     Parameters
     ----------
 
-    file_name : string
+    file_name : `str`
         The full path of the figure file.
 
-    reference : string
+    reference : `str`
         A reference label for this figure, used as default values for caption
         and label.
 
 
     Attributes
     ----------
-    fname : string
+    fname : `str`
         The base name of the full file path
 
-    base_dir : string
+    base_dir : `str`
         The directory containing the figure file
 
-    caption : string
+    caption : `str`
         The caption to use when representing the figure.
         (Default ``Figure reference``)
 
-    label : string
+    label : `str`
         The latex label assigned to the figure envrionment, will bre prefixed
         with ``'fig``. (Default ``fig:reference``)
 
-    placement : string
+    placement : `str`
         The figure envrionment placement value. (Default ``h``)
 
-    figure_width : string
+    figure_width : `str`
         The latex figure width, not used for pgf files.
         (Default ``0.95\columnwidth``)
 
-    subfig_width : string
+    subfig_width : `str`
         LaTeX figure width for when the figure is included in a subfigure.
         (Default ``0.45\columnwidth``)
 
-    subfig_placement : string
+    subfig_placement : `str`
         The subfigure environment placement. (Default ``b``)
 
-    extension_mapping : dict
+    extension_mapping : `dict`
         A mapping of file extensions to methods to return LaTeX includes for
         the file type.
 
-    fig_str : string
+    fig_str : `str`
         The LaTeX template for representing this `~texfigure.Figure` as
         a figure environment.
 
-    subfig_str : string
+    subfig_str : `str`
         The LaTeX template for representing this `~texfigure.Figure` as
         a subfigure.
 
@@ -217,10 +217,10 @@ class MultiFigure(object):
     Parameters
     ----------
 
-    nrows : float
+    nrows : `int`
         Number of rows for the MultiFigure.
 
-    ncols : float
+    ncols : `int`
         Number of columns for the MultiFigure.
 
 
@@ -230,18 +230,18 @@ class MultiFigure(object):
     figures : `numpy.ndarray`
         Array holding `texfigure.Figure` objects, has a shape of (nrows, ncols).
 
-    caption : string
+    caption : `str`
         The caption to use when representing the figure.
         (Default ``Figure reference``)
 
-    label : string
+    label : `str`
         The latex label assigned to the figure envrionment.
         (Default ``fig:reference``)
 
-    placement : string
+    placement : `str`
         The figure envrionment placement value. (Default ``h``)
 
-    frontmatter : string
+    frontmatter : `str`
         LaTeX code included in the first line of the figure environment.
         (Default ``\centering``)
 
@@ -331,13 +331,13 @@ class Manager(object):
     pytex : ``PythonTeXUtils`` instance.
         The pytex object from the PythonTeX session.
 
-    number : float
+    number : `int`
         Numerical index for this chapter.
 
-    base_path : string
+    base_path : `str`
         Path to the base directory for all files for this manager.
 
-    python_dir : bool or string
+    python_dir : `bool` or `str`
         Path to a directory containing Python code to be added to the Python
         path.
 
@@ -398,7 +398,7 @@ class Manager(object):
 
         If data_dir is set to False no directory will be used, if set to True
         the default directory of ``manager.base_path/Data`` will be used, if
-        data_dir is set to a string then that dir will be used.
+        data_dir is set to a `str` then that dir will be used.
         """
         return self._data_dir
 
@@ -413,7 +413,7 @@ class Manager(object):
 
         If fig_dir is set to False no directory will be used, if set to True
         the default directory of ``manager.base_path/Figs`` will be used, if
-        fig_dir is set to a string then that dir will be used.
+        fig_dir is set to a `str` then that dir will be used.
         """
         return self._fig_dir
 
@@ -429,7 +429,7 @@ class Manager(object):
 
         If python_dir is set to False no directory will be used, if set to True
         the default directory of ``manager.base_path/Python`` will be used, if
-        python_dir is set to a string then that dir will be used.
+        python_dir is set to a `str` then that dir will be used.
 
         Notes
         -----
@@ -460,7 +460,7 @@ class Manager(object):
 
         Parameters
         ----------
-        file_name : str
+        file_name : `str`
             The filename in the data directory
         """
 
@@ -475,14 +475,14 @@ class Manager(object):
 
         Parameters
         ----------
-        ref : string
+        ref : `str`
             The latex reference for this figure (excluding 'fig:')
-        fname : string
+        fname : `str`
             Overwrite the default file name template with this name.
 
         Returns
         -------
-        fname : string
+        fname : `str`
             The file name
         """
         if not fname:
@@ -537,7 +537,7 @@ class Manager(object):
 
         Parameters
         ----------
-        ref : string
+        ref : `str`
             The latex reference for this figure (excluding 'fig:')
 
         Fig : `texfigure.Figure`
@@ -556,8 +556,8 @@ class Manager(object):
         Parameters
         ----------
 
-        ref : string
-            A string to use as a key inside this manager, and to add to the
+        ref : `str`
+            A `str` to use as a key inside this manager, and to add to the
             filename and to use a the latex reference.
 
         fig : object
@@ -566,10 +566,10 @@ class Manager(object):
             be assumed that the current ``pyplot`` figure is to be used and
             `~matplotlib.pyplot.gcf` will be called.
 
-        fname : string
+        fname : `str`
             The file name to be used, not including the extension or the path.
 
-        fext : string
+        fext : `str`
             The file extension to be used to save the file.
 
         kwargs : `dict`
@@ -604,12 +604,12 @@ class Manager(object):
 
         Parameters
         ----------
-        ref : str
+        ref : `str`
             The Figure reference
 
         Returns
         -------
-        fname : str
+        fname : `str`
             The filename
         """
 
@@ -623,16 +623,16 @@ class Manager(object):
         Parameters
         ----------
 
-        nrows : float
+        nrows : `int`
             Number of rows for the MultiFigure.
 
-        ncols : float
+        ncols : `int`
             Number of columns for the MultiFigure.
 
-        refs : list
+        refs : `list`
             A list of figure references no more than nrows * ncols long.
 
-        reference : string
+        reference : `str`
             The reference for the `texfigure.MultiFigure` object.
 
         Returns
