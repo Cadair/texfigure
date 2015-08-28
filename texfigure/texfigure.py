@@ -254,9 +254,12 @@ class MultiFigure(object):
 
         muti = texfigure.MultiFigure(1,2)
 
+        X = [[5,6], [7,8]]
+        Y = [[1,2], [3,4]]
+
         for x,y in zip(X,Y):
             fig = plt.figure()
-            plt.plot([1,2], [3,4], 'o')
+            plt.plot(x, y, 'o')
 
             Fig1 = texfigure.Figure(fig)
             multi.append(Fig)
