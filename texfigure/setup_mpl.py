@@ -15,9 +15,11 @@ matplotlib.use('pgf')
 
 
 def figsize(pytex, scale=None, height_ratio=None):
-    """
-    Configure a matplotlib figure size based on the native page width and the
-    golden ratio.
+    r"""
+    A helper for calculating figure sizes based upon latex page widths.
+    This uses the ``pythontexcontext`` to access the figurewith variable from
+    LaTeX, this function then returns a matplotlib ``figwidth`` tuple based on
+    the scale and height_ratio parameters.
 
     Parameters
     ----------
@@ -71,10 +73,12 @@ def figsize(pytex, scale=None, height_ratio=None):
     textwidth_in = pytex.pt_to_in(textwidth_pt)
 
 
-    golden_mean = (np.sqrt(5.0)-1.0)/2.0
+    if not height_ratio:
+        height_ratio = (np.sqrt(5.0)-1.0)/2.0
+
     fig_width = scale*textwidth_in # 90% width
 
-    return (fig_width, fig_width*golden_mean)
+    return (fig_width, fig_width*height_ratio)
 
 
 def configure_latex_plots(pytex):
