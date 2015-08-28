@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('pgf')
 
 
-def figsize(pytex, scale=None):
+def figsize(pytex, scale=None, height_ratio=None):
     """
     Configure a matplotlib figure size based on the native page width and the
     golden ratio.
@@ -28,6 +28,10 @@ def figsize(pytex, scale=None):
     scale : float
         The scale of the figure width in comparison to the textwidth, i.e.
         1 = 100%.
+
+    height_ration : float
+        The ratio of the height to the width.
+        Default is the golden ratio. (~0.61), 1.0 would lead to a square figure.
 
     Returns
     -------
