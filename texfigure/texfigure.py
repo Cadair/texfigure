@@ -248,7 +248,7 @@ class MultiFigure(object):
     Examples
     --------
 
-    .. code-block: latex
+    .. code-block:: latex
 
         \begin{pycode}
 
