@@ -81,7 +81,7 @@ def figsize(pytex, scale=None, height_ratio=None):
     return (fig_width, fig_width*height_ratio)
 
 
-def configure_latex_plots(pytex):
+def configure_latex_plots(pytex, font_size=12, **kwargs):
     """
     Configure a sane set of latex defaults for pgf figure generation.
 
@@ -90,26 +90,39 @@ def configure_latex_plots(pytex):
 
     pytex : PythonTeX Utilites class.
         The pytex class from the PythonTeX Session
+
+    font_size : `float`
+        The default font size for the following rcParams:
+
+        | font.size
+        | axes.labelsize
+        | xtick.labelsize
+        | ytick.labelsize
+        | legend.fontsize
+
+    kwargs : `dict`
+        Extra keyword arguments are used to update `matplotlib.rcParams`.
     """
 
     pgf_with_latex = {
         "pgf.texsystem": "pdflatex",
         "text.usetex": True,
-        "font.size": 12,
+        "font.size": font_size,
         "font.family": "serif",
         "font.serif": [],  # blank entries should cause plots to inherit fonts from the document
         "font.sans-serif": [],
         "font.monospace": [],
-        "axes.labelsize": 12,  # LaTeX default is 10pt font.
-        "legend.fontsize": 8,
-        "xtick.labelsize": 12,
-        "ytick.labelsize": 12,
+        "axes.labelsize": font_size,  # LaTeX default is 10pt font.
+        "legend.fontsize":font_size,
+        "xtick.labelsize": font_size,
+        "ytick.labelsize": font_size,
         "figure.figsize": figsize(pytex),
         "pgf.preamble": [
             r"\usepackage[utf8x]{inputenc}",    # use utf8 fonts becasue your computer can handle it :)
             r"\usepackage[T1]{fontenc}",        # plots will be generated using this preamble
             ]
         }
+    pgf_with_latex.update(kwargs)
     matplotlib.rcParams.update(pgf_with_latex)
 
 
