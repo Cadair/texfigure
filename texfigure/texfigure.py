@@ -8,7 +8,7 @@ A Class that holds Python information on a chapter level.
 """
 import os
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, Sequence
 
 import numpy as np
 
@@ -19,15 +19,12 @@ try:
     import mayavi
     from mayavi import mlab
     HAVE_MAYAVI = True
-
 except ImportError:
     HAVE_MAYAVI = False
-
 
 try:
     import yt
     HAVE_YT = True
-
 except ImportError:
     HAVE_YT = False
 
@@ -209,7 +206,7 @@ class Figure(object):
         return self.repr_figure()
 
 
-class MultiFigure(object):
+class MultiFigure(Sequence):
     r"""
     A Multifigure is a container object for building subfigures from
     `texfigure.Figure` classes.
@@ -278,7 +275,7 @@ class MultiFigure(object):
 \end{{figure*}}
 """
 
-    def __init__(self, nrows, ncols, reference=''):
+    def __init__(self, nrows, ncols, reference='', continuation=False):
         self.nrows = nrows
         self.ncols = ncols
         self.reference = reference
@@ -287,9 +284,48 @@ class MultiFigure(object):
         self.label = "fig:{}".format(self.reference)
         self.placement = 'H'
         self.frontmatter = '\centering'
+        if continuation:
+            self.frontmatter += '\n' + r'\ContinuedFloat'
 
         self.figures = np.zeros([nrows, ncols], dtype=object)
         self.figures[:] = None
+
+    def __len__(self):
+        return self.figures.size()
+
+# TODO: This is not really felxible enough. It dosen't work when ncols > 1.
+# It should probably be a method which can split it into x vertical chunks.
+    def __getitem__(self, key):
+        """
+        Return a continuation when indexed, unless indexed for a single figure,
+        when we return the `texfigure.Figure` instance.
+        """
+        if isinstance(key, int):
+            return self.figures.flat[key]
+
+        elif isinstance(key, slice):
+            # If this is the start of the list then it's not a cont.
+            if key.start is None or key.start == 0:
+                continuation = False
+                new_ref = self.reference
+            else:
+                continuation = True
+                new_ref = self.reference + "-c"
+
+            new_figures = self.figures[key]
+            new_mf = MultiFigure(*new_figures.shape, reference=new_ref,
+                                 continuation=continuation)
+            new_mf.figures = new_figures
+
+            # If we are at the end then add the caption
+            if key.stop is None or key.stop == self.figures.size:
+                new_mf.caption = self.caption
+            else:
+                new_mf.caption = ''
+            return new_mf
+
+        else:
+            raise KeyError("MultiFigure only supports 1D indexing.")
 
     def append(self, figure):
         """
