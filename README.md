@@ -1,5 +1,8 @@
 # texfigure
 
+![Thesis](http://img.shields.io/badge/Powered by-Thesis
+Procrastination-blue.svg)
+
 texfigure is a package of Python helpers to make working with
 figures in a [PythonTex](https://github.com/gpoore/pythontex)
 document easier and prettier.
