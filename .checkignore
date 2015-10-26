@@ -1,3 +1,5 @@
 ah_bootstrap.py
 setup.py
 astropy_helpers/**
+texfigure/_astropy_init.py
+docs/conf.py
