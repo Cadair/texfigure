@@ -122,32 +122,30 @@ which can be included with the normal LaTeX figure environment:\footnote{The pgf
 	\includepgf{myplot.pgf}
 \end{figure}
 
-\section{Astropy Table}
-
-We can make use of this integration between LaTeX and Python to make the use of tools with LaTeX representation support built in even easier.
-The Astropy Table class has a very powerful TeX formatter, which we will use to inline a Table in this document.
-
-\begin{pyblock}
-import StringIO
-from astropy.table import Table
-
-mytable = StringIO.StringIO()
-
-t = Table.read("ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/snrs.dat",
-	           readme="ftp://cdsarc.u-strasbg.fr/pub/cats/VII/253/ReadMe",
-	           format="ascii.cds")
-
-# Crop the table down a bit
-t = t[t.colnames[0:10]][0:50]
-
-t.write(mytable, format='latex', latexdict={'tablealign':'H'})
-
-\end{pyblock}
-
-\py|mytable.getvalue()|
-
-
 \section{Figure Manager}
+
+The figure manager is the primary component of PythonTeX, it makes it easier to
+generate and work with figures generated in PythonTeX code blocks from within a
+LaTeX document.
+
+A figure manager does a number of things:
+
+\begin{enumerate}
+\item Tracks data files in a given directory.
+\item Adds python files in a given directory to the Python Path.
+\item Saves figures from any know figure type.
+\item Tracks figures allowing them to be recalled later.
+\item Returns MultiFigure objects containing any number of already tracked
+  Figures.
+\end{enumerate}
+
+The purpose of a Manager object is to deal with the paths to your data, code and
+figures so that you don't have to. It also abstracts away the saving of the
+figures for you so that you can pass any known figure object to the Manager and
+it will save it in the correct directory and return you a Figure object.
+
+
+
 
 I pulled this out of my Thesis repo this morning!!
 

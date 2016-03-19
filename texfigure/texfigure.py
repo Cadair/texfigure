@@ -374,11 +374,22 @@ class Manager(object):
         Numerical index for this chapter.
 
     base_path : `str`
-        Path to the base directory for all files for this manager.
+        Path in which ``Data``, ``Figs`` and ``Python`` directories will be
+        created to hold files related to this manager. If ``python_dir``,
+        ``data_dir`` or ``figure_dir`` are specified then they will override
+        this setting.
 
     python_dir : `bool` or `str`
         Path to a directory containing Python code to be added to the Python
-        path.
+        path. Overrides ``base_path/Python``.
+
+    data_dir : `bool` or `str`
+        Path to a directory containing data files which can be accessed through
+        the manager. Overrides ``base_path/Data``
+
+    figure_dir : `bool` or `str`
+        Path to a directory containing generated figures. Overrides
+        ``base_path/Figs``
 
 
     Attributes
@@ -486,11 +497,11 @@ class Manager(object):
 
     @property
     def number(self):
+        """
+        A Number indicating the position of this manager in a series of
+        managers, i.e. chapters in a Thesis.
+        """
         return self._number
-
-    @property
-    def chapter_path(self):
-        return self._chapter_path
 
     def data_file(self, file_name):
         """
@@ -539,7 +550,7 @@ class Manager(object):
         A wrapper to save a matplotlib figure object to a file.
         """
 
-        fig.savefig(filename)
+        fig.savefig(filename, **kwargs)
 
         return filename
 
@@ -639,7 +650,7 @@ class Manager(object):
 
     def get_figure(self, ref):
         """
-        Get the filename of a figure that has already been saved
+        Get the `~texfigure.Figure` object corresponding to the given reference.
 
         Parameters
         ----------
@@ -648,8 +659,8 @@ class Manager(object):
 
         Returns
         -------
-        fname : `str`
-            The filename
+        Figure : `texfigure.Figure`
+            The Figure object.
         """
 
         return self._figure_registry[ref]['Figure']

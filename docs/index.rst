@@ -5,6 +5,9 @@ texfigure is a package designed to make it easier to work with matplotlib and
 other figures inside PythonTeX documents.
 
 
+.. toctree::
+  manager
+
 .. automodapi:: texfigure
 
 
