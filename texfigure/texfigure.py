@@ -499,7 +499,7 @@ class Manager(object):
     def number(self):
         """
         A Number indicating the position of this manager in a series of
-        managers, i.e. chapters in a Thesis.
+        managers, i.e. chapters in a thesis.
         """
         return self._number
 
