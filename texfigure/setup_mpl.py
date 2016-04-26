@@ -14,7 +14,7 @@ import matplotlib
 matplotlib.use('pgf')
 
 
-def figsize(pytex, scale=None, height_ratio=None):
+def figsize(pytex, scale=None, height_ratio=None, figure_width_context="figurewidth"):
     r"""
     A helper for calculating figure sizes based upon latex page widths.
     This uses the ``pythontexcontext`` to access the figurewith variable from
@@ -33,7 +33,11 @@ def figsize(pytex, scale=None, height_ratio=None):
 
     height_ration : float
         The ratio of the height to the width.
-        Default is the golden ratio. (~0.61), 1.0 would lead to a square figure.
+        Default is the golden ratio. (~0.61), 1.0 would lead to a square
+        figure.
+
+    figure_width_context : `string`
+        The pytex context variable to use to generate the figure width.
 
     Returns
     -------
@@ -58,7 +62,7 @@ def figsize(pytex, scale=None, height_ratio=None):
 
     """
     if hasattr(pytex, 'context'):
-        textwidth_pt = float(pytex.context.get('figurewidth', 'pt')[:-2])
+        textwidth_pt = float(pytex.context.get(figure_width_context, 'pt')[:-2])
         if not scale:
             scale = float(pytex.context.get('figscale', 0.95))
     else:
