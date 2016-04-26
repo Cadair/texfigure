@@ -67,6 +67,10 @@ class Figure(object):
     placement : `str`
         The figure envrionment placement value. (Default ``h``)
 
+    figure_name : `str`
+        The string used for the figure environment i.e. ``\beign{figure}``.
+        Useful for changing to ``figure*`` etc. (Default ``figure``)
+
     figure_width : `str`
         The latex figure width, not used for pgf files.
         (Default ``0.95\columnwidth``)
@@ -109,12 +113,12 @@ class Figure(object):
     """
 
     fig_str = r"""
-\begin{{figure}}[{placement}]
+\begin{{{figure_name}}}[{placement}]
     \centering
     {myfig}
     \caption{{{caption}}}
     \label{{{label}}}
-\end{{figure}}
+\end{{{figure_name}}}
 """
 
     # Note the different indentation here, this is deleberate.
@@ -141,6 +145,7 @@ class Figure(object):
         self.caption = "Figure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
         self.placement = 'h'
+        self.figure_name = "figure"
         self.figure_width = r'0.95\columnwidth'
         self.subfig_width = r'0.45\columnwidth'
         self.subfig_placement = 'b'
