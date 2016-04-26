@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Created on Thu Dec  4 18:01:51 2014
-
-@author: Stuart Mumford
-
-A Class that holds Python information on a chapter level.
-"""
 import os
 import sys
 from collections import OrderedDict, Sequence
@@ -67,8 +60,8 @@ class Figure(object):
     placement : `str`
         The figure envrionment placement value. (Default ``h``)
 
-    figure_name : `str`
-        The string used for the figure environment i.e. ``\beign{figure}``.
+    figure_env_name : `str`
+        The string used for the figure environment i.e. ``\begin{figure}``.
         Useful for changing to ``figure*`` etc. (Default ``figure``)
 
     figure_width : `str`
@@ -113,15 +106,15 @@ class Figure(object):
     """
 
     fig_str = r"""
-\begin{{{figure_name}}}[{placement}]
+\begin{{{figure_env_name}}}[{placement}]
     \centering
     {myfig}
     \caption{{{caption}}}
     \label{{{label}}}
-\end{{{figure_name}}}
+\end{{{figure_env_name}}}
 """
 
-    # Note the different indentation here, this is deleberate.
+    # Note the different indentation here, this is deliberate.
     subfig_str = r"""
     \begin{{subfigure}}[{placement}]{{{width}}}
         {myfig}
@@ -145,7 +138,7 @@ class Figure(object):
         self.caption = "Figure {}".format(self.reference)
         self.label = "fig:{}".format(self.reference)
         self.placement = 'h'
-        self.figure_name = "figure"
+        self.figure_env_name = "figure"
         self.figure_width = r'0.95\columnwidth'
         self.subfig_width = r'0.45\columnwidth'
         self.subfig_placement = 'b'
@@ -188,7 +181,8 @@ class Figure(object):
 
         default_kwargs = {'placement': self.placement,
                           'caption': self.caption,
-                          'label': self.label}
+                          'label': self.label,
+                          'figure_env_name': self.figure_env_name}
 
         myfig = self.extension_mapping[self.extension]()
 
