@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+import glob
 from collections import OrderedDict, Sequence
+import six
 
 import numpy as np
 
@@ -432,7 +434,7 @@ class Manager(object):
 
     def _add_dir(self, adir, attr, default):
         if adir:
-            if not isinstance(adir, str):
+            if not isinstance(adir, six.string_types):
                 setattr(self, attr, os.path.join(self._base_path, default))
             else:
                 setattr(self, attr, adir)
@@ -513,10 +515,15 @@ class Manager(object):
             The filename in the data directory
         """
 
-        fname = os.path.join(self.data_dir, file_name)
-        self.pytex.add_dependencies(fname)
+        fpattern = os.path.join(self.data_dir, file_name)
+        fpaths = glob.glob(fpattern)
+        for fpath in fpaths:
+            self.pytex.add_dependencies(fpath)
 
-        return fname
+        if not len(fpaths):
+            return fpaths[0]
+
+        return fpaths
 
     def make_figure_filename(self, ref, fname=None, fext='', fullpath=False):
         """
