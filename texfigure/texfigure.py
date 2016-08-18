@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
 import os
 import sys
 import glob
@@ -520,7 +521,7 @@ class Manager(object):
         for fpath in fpaths:
             self.pytex.add_dependencies(fpath)
 
-        if not len(fpaths):
+        if len(fpaths) < 2:
             return fpaths[0]
 
         return fpaths
