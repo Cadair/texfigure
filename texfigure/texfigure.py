@@ -521,10 +521,12 @@ class Manager(object):
         for fpath in fpaths:
             self.pytex.add_dependencies(fpath)
 
-        if len(fpaths) < 2:
+        if not fpaths:
+            raise ValueError("No files found matching this name or pattern.")
+        elif len(fpaths) == 1:
             return fpaths[0]
-
-        return fpaths
+        else:
+            return fpaths
 
     def make_figure_filename(self, ref, fname=None, fext='', fullpath=False):
         """
