@@ -21,7 +21,7 @@ python:
 # Configure the build environment. Global varibles are defined for all configurations.
 env:
     global:
-        - NUMPY_VERSION='stable'
+        - NUMPY_VERSION='1.12'
         - ASTROPY_VERSION='stable'
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='build_docs'
