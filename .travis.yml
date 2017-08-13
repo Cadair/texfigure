@@ -16,7 +16,7 @@ addons:
             - dvipng
 
 python:
-    - 3.6
+    - 3.5
 
 # Configure the build environment. Global varibles are defined for all configurations.
 env:
@@ -27,7 +27,7 @@ env:
         - SETUP_CMD='build_docs'
         - CONDA_CHANNELS='conda-forge'
         - CONDA_DEPENDENCIES='sunpy yt mayavi'
-        - PIP_DEPENDENCIES='suds-jurko ltd-mason'
+        - PIP_DEPENDENCIES='ltd-mason'
         - EVENT_TYPE='pull_request push'
         - LTD_MASON_BUILD=true
         - LTD_MASON_PRODUCT="texfigure"
