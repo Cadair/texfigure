@@ -29,12 +29,16 @@ env:
         - CONDA_DEPENDENCIES='sunpy yt mayavi'
         - PIP_DEPENDENCIES='suds-jurko ltd-mason'
         - EVENT_TYPE='pull_request push'
+        - LTD_MASON_BUILD=true
+        - LTD_MASON_PRODUCT="texfigure"
+        - LTD_KEEPER_URL="http://ctd.cadair.com/keeper"
 
-    matrix:
-        - SETUP_CMD='egg_info'
 install:
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda.sh
 
 script:
     - $MAIN_CMD $SETUP_CMD
+
+after_success:
+  - ltd-mason-travis --html-dir build/sphinx/html/
