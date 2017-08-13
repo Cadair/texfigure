@@ -1,0 +1,40 @@
+language: python
+
+# Setting sudo to false opts in to Travis-CI container-based builds.
+sudo: false
+
+# The apt packages below are needed but can no longer be installed with
+# sudo apt-get.
+addons:
+    apt:
+        packages:
+            - libatlas-dev
+            - liblapack-dev
+            - gfortran
+            - graphviz
+            - texlive-latex-extra
+            - dvipng
+
+python:
+    - 3.6
+
+# Configure the build environment. Global varibles are defined for all configurations.
+env:
+    global:
+        - NUMPY_VERSION='stable'
+        - ASTROPY_VERSION='stable'
+        - MAIN_CMD='python setup.py'
+        - SETUP_CMD='build_docs'
+        - CONDA_CHANNELS='conda-forge'
+        - CONDA_DEPENDENCIES='sunpy yt mayavi'
+        - PIP_DEPENDENCIES='suds-jurko ltd-mason'
+        - EVENT_TYPE='pull_request push'
+
+    matrix:
+        - SETUP_CMD='egg_info'
+install:
+    - git clone git://github.com/astropy/ci-helpers.git
+    - source ci-helpers/travis/setup_conda.sh
+
+script:
+    - $MAIN_CMD $SETUP_CMD
